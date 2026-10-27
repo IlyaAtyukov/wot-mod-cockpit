@@ -1,0 +1,39 @@
+{
+  "column1": [
+    {
+      "text": "Основное",
+      "type": "Label"
+    },
+    {
+      "text": "Показывать приветствие",
+      "tooltip": "{HEADER}Приветствие{/HEADER}{BODY}Системное сообщение при входе в ангар{/BODY}",
+      "type": "CheckBox",
+      "value": true,
+      "varName": "showGreeting"
+    },
+    {
+      "maximum": 10,
+      "minimum": 0,
+      "snapInterval": 1,
+      "text": "Задержка, с",
+      "type": "NumericStepper",
+      "value": 3,
+      "varName": "delaySec"
+    }
+  ],
+  "column2": [
+    {
+      "text": "Текст",
+      "type": "Label"
+    },
+    {
+      "text": "Текст приветствия",
+      "type": "TextInput",
+      "value": "Привет, танкист!",
+      "varName": "greetingText"
+    }
+  ],
+  "enabled": true,
+  "modDisplayName": "My Mod",
+  "settingsVersion": 1
+}

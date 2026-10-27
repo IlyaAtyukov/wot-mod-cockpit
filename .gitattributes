@@ -1,0 +1,43 @@
+# Концы строк не должны зависеть от core.autocrlf того, кто клонирует репозиторий.
+# В индексе всё текстовое хранится с LF; здесь задано, что получается в рабочей копии:
+# по умолчанию тоже LF (как и в .editorconfig), исключения — ниже.
+* text=auto eol=lf
+
+# Исходники — LF на любой машине, а не CRLF «по-виндовому». Это не вкусовщина:
+# тесты держат фикстуры Python в сырых строках C# ("""…"""), а такая строка берёт
+# концы строк самого .cs-файла. С CRLF-копией часть тестов (например, те, что сами
+# переводят \n в \r\n) получает \r\r\n и падает только на этой машине.
+*.cs        text eol=lf diff=csharp
+*.xaml      text eol=lf
+*.csproj    text eol=lf
+*.props     text eol=lf
+*.targets   text eol=lf
+*.manifest  text eol=lf
+*.xml       text eol=lf
+*.xshd      text eol=lf
+*.json      text eol=lf
+*.txt       text eol=lf
+*.md        text eol=lf diff=markdown
+
+# Python — LF. Рецепты и каркас настроек встроены в сборку ресурсами и уезжают в моды
+# пользователей: их байты не должны зависеть от того, где собирали кокпит.
+*.py        text eol=lf diff=python
+
+# Файл решения Visual Studio традиционно в CRLF.
+*.sln       text eol=crlf
+
+# Скрипты командной строки Windows — только CRLF, иначе cmd.exe путается в метках.
+*.cmd       text eol=crlf
+*.bat       text eol=crlf
+*.ps1       text eol=crlf
+
+# Двоичные файлы: никаких преобразований и текстовых диффов.
+*.png       binary
+*.ico       binary
+*.jpg       binary
+*.gif       binary
+*.pyc       binary
+*.zip       binary
+*.mtmod     binary
+*.exe       binary
+*.dll       binary

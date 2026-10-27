@@ -1,0 +1,15 @@
+<Application x:Class="WotModCockpit.App.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- Порядок значим: Controls.xaml опирается на кисти и базовые стили из DarkTheme.xaml. -->
+                <ResourceDictionary Source="Styles/DarkTheme.xaml" />
+                <ResourceDictionary Source="Styles/Controls.xaml" />
+                <!-- Шаблон окна опирается на кисти темы, поэтому идёт последним. -->
+                <ResourceDictionary Source="Styles/Window.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

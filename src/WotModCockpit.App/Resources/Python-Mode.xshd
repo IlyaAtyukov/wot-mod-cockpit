@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Подсветка Python 2.7 для AvalonEdit.
+
+  Это НЕ универсальный питон-мод: файлы, которые здесь показываются, — вывод uncompyle6,
+  то есть код Python 2.7 со специфическим набором ловушек.
+
+  1. print и exec тут ОПЕРАТОРЫ, а не функции: `print x` встречается в client/game.py и других
+     файлах, и подсвечивать их как обычные идентификаторы неправильно.
+  2. В 135 файлах корпуса есть строковые литералы с НЕЭКРАНИРОВАННЫМ апострофом, например
+     client/messenger/formatters/service_channel.py:275
+         _logger.warning(bu'Couldn't find 'actualValue' field in data %s', recData)
+     Никакой лексер такое не разберёт правильно — там просто нет валидного разбиения на токены.
+     Ошибка подсветки в такой строке КОСМЕТИЧЕСКАЯ и ожидаемая. Именно поэтому индекс кокпита
+     построчный и без состояния (см. отчёт разведки), а здесь важно лишь то, чтобы Span строки
+     не «съел» остаток файла: у всех однострочных Span стоит multiline="false".
+  3. Литералы 0777 и 123L валидны для py2 и должны краситься как числа.
+
+  Цвета согласованы с тёмной темой кокпита (Styles/DarkTheme.xaml).
+-->
+<SyntaxDefinition name="Python27" extensions=".py"
+                  xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+
+    <Color name="Comment"    foreground="#FF6A8759" fontStyle="italic" />
+    <Color name="String"     foreground="#FFCE9178" />
+    <Color name="DocString"  foreground="#FF8A9E6E" fontStyle="italic" />
+    <Color name="Number"     foreground="#FFB5CEA8" />
+    <Color name="Keyword"    foreground="#FF569CD6" />
+    <Color name="Flow"       foreground="#FFC586C0" />
+    <Color name="Declare"    foreground="#FF569CD6" fontWeight="bold" />
+    <Color name="DefName"    foreground="#FFDCDCAA" />
+    <Color name="ClassName"  foreground="#FF4EC9B0" />
+    <Color name="Decorator"  foreground="#FFD7BA7D" />
+    <Color name="Builtin"    foreground="#FF4EC9B0" />
+    <Color name="SelfCls"    foreground="#FF9CDCFE" fontStyle="italic" />
+    <Color name="Dunder"     foreground="#FF9E86B8" />
+    <Color name="EventCall"  foreground="#FF63C79E" />
+
+    <RuleSet ignoreCase="false">
+
+        <!-- Тройные кавычки. Единственный многострочный Span: docstring модуля и класса. -->
+        <Span color="DocString" multiline="true">
+            <Begin>"""</Begin>
+            <End>"""</End>
+        </Span>
+        <Span color="DocString" multiline="true">
+            <Begin>'''</Begin>
+            <End>'''</End>
+        </Span>
+
+        <!-- Комментарий. В корпусе их всего 2 вне 4-строчных шапок uncompyle6,
+             но сами шапки есть у всех 8052 файлов и должны быть приглушены. -->
+        <Span color="Comment" begin="#" />
+
+        <!-- Однострочные литералы. multiline="false" (по умолчанию) намеренно:
+             битый апостроф не должен утащить подсветку до конца файла. -->
+        <Span color="String">
+            <Begin>[bBuUrR]{0,2}"</Begin>
+            <End>"</End>
+            <RuleSet>
+                <Span begin="\\" end="." />
+            </RuleSet>
+        </Span>
+        <Span color="String">
+            <Begin>[bBuUrR]{0,2}'</Begin>
+            <End>'</End>
+            <RuleSet>
+                <Span begin="\\" end="." />
+            </RuleSet>
+        </Span>
+
+        <!-- Декоратор целиком: @property, @dependency.replace_none_kwargs, @overrideMethod(...) -->
+        <Rule color="Decorator">^\s*@[\w.]+</Rule>
+
+        <!-- Имя объявляемого символа. Lookbehind, потому что красить надо только имя,
+             а не ключевое слово (оно уже покрашено ниже как Declare). -->
+        <Rule color="DefName">(?&lt;=\bdef\s+)[A-Za-z_]\w*</Rule>
+        <Rule color="ClassName">(?&lt;=\bclass\s+)[A-Za-z_]\w*</Rule>
+
+        <Keywords color="Declare">
+            <Word>def</Word>
+            <Word>class</Word>
+            <Word>lambda</Word>
+        </Keywords>
+
+        <Keywords color="Flow">
+            <Word>if</Word>
+            <Word>elif</Word>
+            <Word>else</Word>
+            <Word>for</Word>
+            <Word>while</Word>
+            <Word>break</Word>
+            <Word>continue</Word>
+            <Word>return</Word>
+            <Word>yield</Word>
+            <Word>try</Word>
+            <Word>except</Word>
+            <Word>finally</Word>
+            <Word>raise</Word>
+            <Word>with</Word>
+            <Word>pass</Word>
+            <Word>assert</Word>
+        </Keywords>
+
+        <Keywords color="Keyword">
+            <Word>import</Word>
+            <Word>from</Word>
+            <Word>as</Word>
+            <Word>global</Word>
+            <Word>del</Word>
+            <Word>in</Word>
+            <Word>is</Word>
+            <Word>not</Word>
+            <Word>and</Word>
+            <Word>or</Word>
+            <Word>None</Word>
+            <Word>True</Word>
+            <Word>False</Word>
+            <!-- Операторы Python 2, которых нет в py3. Держим здесь намеренно. -->
+            <Word>print</Word>
+            <Word>exec</Word>
+        </Keywords>
+
+        <Keywords color="Builtin">
+            <Word>len</Word>
+            <Word>range</Word>
+            <Word>xrange</Word>
+            <Word>getattr</Word>
+            <Word>setattr</Word>
+            <Word>hasattr</Word>
+            <Word>isinstance</Word>
+            <Word>issubclass</Word>
+            <Word>super</Word>
+            <Word>property</Word>
+            <Word>staticmethod</Word>
+            <Word>classmethod</Word>
+            <Word>type</Word>
+            <Word>object</Word>
+            <Word>dict</Word>
+            <Word>list</Word>
+            <Word>tuple</Word>
+            <Word>set</Word>
+            <Word>int</Word>
+            <Word>float</Word>
+            <Word>str</Word>
+            <Word>unicode</Word>
+            <Word>bool</Word>
+            <Word>enumerate</Word>
+            <Word>zip</Word>
+            <Word>map</Word>
+            <Word>filter</Word>
+            <Word>callable</Word>
+        </Keywords>
+
+        <Keywords color="SelfCls">
+            <Word>self</Word>
+            <Word>cls</Word>
+        </Keywords>
+
+        <!-- Каркас клиента, ради которого браузер API и существует: подписка на события,
+             получение сервисов, глобальные точки входа. Видно с первого взгляда. -->
+        <Keywords color="EventCall">
+            <Word>Event</Word>
+            <Word>SafeEvent</Word>
+            <Word>SuspendedEvent</Word>
+            <Word>dependency</Word>
+            <Word>g_playerEvents</Word>
+            <Word>BigWorld</Word>
+            <Word>sessionProvider</Word>
+        </Keywords>
+
+        <!-- Магические имена: __init__, __slots__, _Class__mangled. -->
+        <Rule color="Dunder">\b__\w+__\b</Rule>
+
+        <!-- Числа, включая восьмеричные 0777 и длинные 123L из Python 2. -->
+        <Rule color="Number">
+            \b0[xX][0-9a-fA-F]+[lL]?\b |
+            \b0[0-7]+[lL]?\b |
+            \b[0-9]+(\.[0-9]+)?([eE][+-]?[0-9]+)?[jJlL]?\b
+        </Rule>
+
+    </RuleSet>
+</SyntaxDefinition>

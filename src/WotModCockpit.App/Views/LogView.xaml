@@ -1,0 +1,277 @@
+<UserControl x:Class="WotModCockpit.App.Views.LogView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:WotModCockpit.App.Converters"
+             xmlns:vm="clr-namespace:WotModCockpit.App.ViewModels"
+             Background="{StaticResource Brush.Window}">
+
+    <UserControl.Resources>
+
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <conv:StringToVisibilityConverter x:Key="StrToVis" />
+        <conv:CountToVisibilityConverter x:Key="CountToVis" />
+        <conv:SeverityToBrushConverter x:Key="SeverityToBrush" />
+        <conv:FrameOriginToTextConverter x:Key="OriginToText" />
+        <conv:FrameOriginToBrushConverter x:Key="OriginToBrush" />
+
+        <!-- Треугольник разворачивания записи с traceback. -->
+        <Style x:Key="ExpanderToggle" TargetType="ToggleButton">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Margin" Value="2,2,0,0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border Background="Transparent" Width="14" Height="15">
+                            <Path x:Name="Arrow"
+                                  Data="M 0 0 L 4 4 L 0 8 Z"
+                                  Fill="{StaticResource Brush.TextMuted}"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  RenderTransformOrigin="0.35,0.5" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource Brush.Text}" />
+                                <Setter TargetName="Arrow" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <RotateTransform Angle="90" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource Brush.Text}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Кадр traceback. Клик открывает файл в VS Code на нужной строке. -->
+        <DataTemplate x:Key="FrameTemplate" DataType="{x:Type vm:TracebackFrameViewModel}">
+            <StackPanel Orientation="Horizontal" Margin="0,1">
+                <Border Style="{StaticResource Style.OriginBadge}"
+                        Background="{Binding Origin, Converter={StaticResource OriginToBrush}}">
+                    <TextBlock Text="{Binding Origin, Converter={StaticResource OriginToText}}"
+                               FontSize="10"
+                               Foreground="{StaticResource Brush.TextMuted}" />
+                </Border>
+                <Button Style="{StaticResource Style.LinkButton}"
+                        Content="{Binding Display}"
+                        ToolTip="{Binding ToolTipText}"
+                        IsEnabled="{Binding IsResolved}"
+                        Command="{Binding DataContext.OpenFrameCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding}" />
+                <!-- Второй способ открыть кадр: карточка символа в браузере API.
+                     VS Code показывает файл, браузер — сигнатуру, декораторы и места вызова.
+                     Для кадров клиента полезнее второе, поэтому кнопки две, а не одна.
+                     Работает по виртуальному пути и потому не требует файла на диске. -->
+                <Button Style="{StaticResource Style.SmallButton}"
+                        Margin="8,0,0,0"
+                        Padding="5,0"
+                        FontSize="10"
+                        Content="в браузере API"
+                        Command="{Binding DataContext.OpenFrameInApiBrowserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding}"
+                        ToolTip="Открыть этот кадр в браузере API по виртуальному пути (scripts/client/…): карточка символа, его сигнатура и места, откуда он вызывается." />
+
+                <TextBlock Text="  ≈ строка приблизительная"
+                           FontSize="10"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource Brush.WarnText}"
+                           Visibility="{Binding IsApproximate, Converter={StaticResource BoolToVis}}" />
+            </StackPanel>
+        </DataTemplate>
+
+        <!-- Строка лога. Держится тощей: тело traceback и кадры материализуются
+             только у развёрнутой записи. -->
+        <DataTemplate x:Key="LogEntryTemplate" DataType="{x:Type vm:LogEntryViewModel}">
+            <Border x:Name="Row"
+                    BorderThickness="3,0,0,0"
+                    BorderBrush="Transparent"
+                    Background="Transparent"
+                    Padding="0,1,8,1">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="18" />
+                            <ColumnDefinition Width="98" />
+                            <ColumnDefinition Width="62" />
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <ToggleButton Grid.Column="0"
+                                      Style="{StaticResource ExpanderToggle}"
+                                      IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+                                      Visibility="{Binding CanExpand, Converter={StaticResource BoolToVis}}" />
+
+                        <TextBlock Grid.Column="1"
+                                   Style="{StaticResource Style.LogText}"
+                                   Text="{Binding TimeText}"
+                                   Foreground="{StaticResource Brush.TextMuted}" />
+
+                        <TextBlock Grid.Column="2"
+                                   Style="{StaticResource Style.LogText}"
+                                   Text="{Binding Level}"
+                                   Foreground="{Binding Severity, Converter={StaticResource SeverityToBrush}}" />
+
+                        <TextBlock Grid.Column="3"
+                                   Style="{StaticResource Style.LogText}"
+                                   Margin="0,0,8,0"
+                                   Text="{Binding Category}"
+                                   Foreground="{StaticResource Brush.TextMuted}" />
+
+                        <TextBlock Grid.Column="4"
+                                   Style="{StaticResource Style.LogText}"
+                                   Text="{Binding Message}"
+                                   ToolTip="{Binding ToolTipText}"
+                                   Foreground="{Binding Severity, Converter={StaticResource SeverityToBrush}}" />
+                    </Grid>
+
+                    <Border Margin="18,3,0,7"
+                            Padding="8,6"
+                            CornerRadius="3"
+                            Background="#FF16161A"
+                            BorderBrush="{StaticResource Brush.Border}"
+                            BorderThickness="1"
+                            Visibility="{Binding IsExpanded, Converter={StaticResource BoolToVis}}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding ContinuationText}"
+                                       FontFamily="{StaticResource Font.Mono}"
+                                       FontSize="12"
+                                       TextWrapping="Wrap"
+                                       Foreground="{StaticResource Brush.TextMuted}"
+                                       Visibility="{Binding ContinuationText, Converter={StaticResource StrToVis}}" />
+
+                            <TextBlock Text="кадры (клик открывает файл в VS Code):"
+                                       Margin="0,6,0,2"
+                                       FontSize="10"
+                                       Foreground="{StaticResource Brush.TextMuted}"
+                                       Visibility="{Binding Frames.Count, Converter={StaticResource CountToVis}}" />
+
+                            <ItemsControl ItemsSource="{Binding Frames}"
+                                          ItemTemplate="{StaticResource FrameTemplate}" />
+
+                            <TextBlock Text="Кадров нет: маппер не нашёл ни одного (файл, строка). Виртуальные пути живут внутри scripts.pkg."
+                                       FontSize="10"
+                                       TextWrapping="Wrap"
+                                       Foreground="{StaticResource Brush.TextMuted}"
+                                       Visibility="{Binding Frames.Count, Converter={StaticResource CountToVis}, ConverterParameter=invert}" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Border>
+
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsMine}" Value="True">
+                    <Setter TargetName="Row" Property="Background" Value="{StaticResource Log.Mine.Bg}" />
+                    <Setter TargetName="Row" Property="BorderBrush" Value="{StaticResource Log.Mine.Bar}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsSystem}" Value="True">
+                    <Setter TargetName="Row" Property="Background" Value="{StaticResource Log.System.Bg}" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Панель управления лентой -->
+        <Border Grid.Row="0"
+                Background="{StaticResource Brush.Panel}"
+                BorderBrush="{StaticResource Brush.Border}"
+                BorderThickness="0,0,0,1"
+                Padding="8,6">
+            <!-- WrapPanel, а не Grid со звёздочными колонками: на заявленном минимуме окна
+                 (900x520) звёздочные колонки уходили в ноль, и поле поиска вместе со счётчиком
+                 «показано N из M» просто исчезали, а Auto-колонки с чипами их выдавливали.
+                 Здесь при нехватке ширины блоки переносятся на вторую строку, ничего не пропадая. -->
+            <WrapPanel Orientation="Horizontal">
+
+                <Grid Width="240" Margin="0,2,10,2" VerticalAlignment="Center">
+                    <TextBox Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock Text="поиск по подстроке…"
+                               Margin="8,0,0,0"
+                               IsHitTestVisible="False"
+                               VerticalAlignment="Center"
+                               Foreground="{StaticResource Brush.TextMuted}"
+                               Visibility="{Binding SearchText, Converter={StaticResource StrToVis}, ConverterParameter=invert}" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2">
+                    <ToggleButton Style="{StaticResource Style.Chip}"
+                                  Content="только мой мод"
+                                  IsChecked="{Binding OnlyMine}"
+                                  ToolTip="Строки с тегом мода или из файлов проекта (LogEntry.IsMine)" />
+                    <ToggleButton Style="{StaticResource Style.Chip}"
+                                  Content="только ошибки"
+                                  IsChecked="{Binding OnlyErrors}"
+                                  ToolTip="ERROR / CRITICAL / FATAL, категории [EXCEPTION] и [ERROR], а также любая запись с телом traceback. WARNING сюда НЕ входит — это LogFilter.IsProblem." />
+                    <ToggleButton Style="{StaticResource Style.Chip}"
+                                  Content="автопрокрутка"
+                                  IsChecked="{Binding AutoScroll}" />
+                </StackPanel>
+
+                <TextBlock Margin="12,0"
+                           VerticalAlignment="Center"
+                           Style="{StaticResource Style.Muted}"
+                           TextTrimming="CharacterEllipsis"
+                           ToolTip="Показано после фильтра / в кольцевом буфере / ёмкость буфера (logBufferCapacity)">
+                    <TextBlock.Text>
+                        <MultiBinding StringFormat="показано {0} из {1} (буфер {2})">
+                            <Binding Path="VisibleCount" />
+                            <Binding Path="TotalCount" />
+                            <Binding Path="BufferCapacity" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,2">
+                    <Button Style="{StaticResource Style.SmallButton}"
+                            Content="дочитать весь файл"
+                            Margin="0,0,6,0"
+                            Command="{Binding ReadWholeLogCommand}"
+                            ToolTip="При старте показывается только хвост (logPrimeTailKilobytes). Эта кнопка перечитывает python.log ЦЕЛИКОМ." />
+                    <Button Style="{StaticResource Style.SmallButton}"
+                            Content="перечитать лог"
+                            Margin="0,0,6,0"
+                            Command="{Binding RestartTailingCommand}"
+                            ToolTip="Переоткрыть python.log с нуля (например, после переустановки игры). Лента очищается, чтобы хвост не задвоился." />
+                    <Button Style="{StaticResource Style.SmallButton}"
+                            Content="очистить"
+                            Command="{Binding ClearLogCommand}"
+                            ToolTip="Чистит только ленту в окне. Файл python.log не трогается." />
+                </StackPanel>
+            </WrapPanel>
+        </Border>
+
+        <!-- Лента -->
+        <Grid Grid.Row="1">
+            <ListBox x:Name="EntriesList"
+                     ItemsSource="{Binding LogEntries}"
+                     ItemTemplate="{StaticResource LogEntryTemplate}"
+                     HorizontalContentAlignment="Stretch"
+                     VirtualizingPanel.IsVirtualizing="True"
+                     VirtualizingPanel.VirtualizationMode="Recycling"
+                     VirtualizingPanel.ScrollUnit="Pixel"
+                     VirtualizingPanel.CacheLengthUnit="Page"
+                     ScrollViewer.CanContentScroll="True"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                     ScrollViewer.VerticalScrollBarVisibility="Auto"
+                     MouseDoubleClick="OnEntriesDoubleClick"
+                     PreviewKeyDown="OnEntriesKeyDown" />
+
+            <TextBlock Style="{StaticResource Style.EmptyState}"
+                       Text="{Binding LogEmptyHint}"
+                       Visibility="{Binding LogEntries.Count, Converter={StaticResource CountToVis}, ConverterParameter=invert}" />
+        </Grid>
+    </Grid>
+</UserControl>

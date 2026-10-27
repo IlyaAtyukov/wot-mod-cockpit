@@ -1,0 +1,95 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <RootNamespace>WotModCockpit.App</RootNamespace>
+    <AssemblyName>WotModCockpit.App</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <!-- Иконка САМОГО ФАЙЛА exe: её показывают проводник, ярлык и закреплённая
+         кнопка панели задач. Иконку ОКНА (панель задач у запущенного приложения
+         и шапка) задаёт Window.Icon — это разные вещи, и нужны обе.
+         Файл собирается из tools/make_icon.py. -->
+    <ApplicationIcon>Resources\cockpit.ico</ApplicationIcon>
+    <!-- Кокпит следит за файлами и процессами: single-file/trimming не включаем. -->
+    <SelfContained>false</SelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\WotModCockpit.Core\WotModCockpit.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Лицензии едут вместе с программой: MIT кокпита, 0BSD вставляемого в моды кода, сторонние библиотеки. -->
+  <ItemGroup>
+    <None Include="..\..\LICENSE" Link="LICENSE" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\LICENSE-0BSD" Link="LICENSE-0BSD" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\..\LICENSE-0BSD')" />
+    <None Include="..\..\THIRD-PARTY-NOTICES.md" Link="THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+      Заглушка установщика для «Собрать сетап…» на экране «Моды» (WotModCockpit.Core/Bundle).
+      Это отдельный exe под .NET Framework 4.7.2, кокпит на него не ссылается как на сборку:
+      ссылка на проект нужна только для порядка сборки (сначала заглушка, потом кокпит), а сам
+      exe ложится рядом с кокпитом в setup\ обычным Content — оттуда его берёт SetupStubLocator.
+      Content, а не ручное копирование, ради тестов: файлы Content из проекта-ссылки доезжают и
+      до выходного каталога тестов, и интеграционный тест гоняет ту же заглушку, что и кокпит.
+      Путь к exe не угадывается (bin\<конфигурация>\net472 ломался на dotnet build -o,
+      UseArtifactsOutput и своём BaseOutputPath), а спрашивается у самого проекта заглушки —
+      целью GetTargetPath (см. AddSetupStubContent ниже).
+  -->
+  <ItemGroup>
+    <ProjectReference Include="..\WotModCockpit.Setup\WotModCockpit.Setup.csproj"
+                      ReferenceOutputAssembly="false"
+                      SkipGetTargetFrameworkProperties="true"
+                      GlobalPropertiesToRemove="TargetFramework;RuntimeIdentifier;SelfContained" />
+  </ItemGroup>
+
+  <!--
+      Content с заглушкой добавляется перед AssignTargetPaths: эту цель зовёт и собственная сборка
+      кокпита, и GetCopyToOutputDirectoryItems, через которую файлы Content доезжают до выхода
+      тестов. Свойства вызова повторяют ссылку на проект выше — тогда путь совпадает с тем, куда
+      заглушка реально собрана.
+  -->
+  <Target Name="AddSetupStubContent" BeforeTargets="AssignTargetPaths">
+    <MSBuild Projects="..\WotModCockpit.Setup\WotModCockpit.Setup.csproj"
+             Targets="GetTargetPath"
+             Properties="Configuration=$(Configuration)"
+             RemoveProperties="TargetFramework;RuntimeIdentifier;SelfContained">
+      <Output TaskParameter="TargetOutputs" ItemName="_SetupStubExe" />
+    </MSBuild>
+
+    <ItemGroup>
+      <Content Include="@(_SetupStubExe)"
+               Link="setup\WotModCockpit.Setup.exe"
+               CopyToOutputDirectory="PreserveNewest"
+               Visible="false" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <!-- AvalonEdit нужен ровно одному экрану — браузеру API (Controls/PythonSourceView):
+         там показывается ЧУЖОЙ исходник на 3000 строк, и нужны нумерация строк, подсветка
+         Python и прокрутка к строке объявления.
+         Лента python.log на AvalonEdit НЕ переезжает: это виртуализованный ListBox
+         (Views/LogView.xaml, VirtualizationMode=Recycling) из сворачиваемых записей с кадрами
+         traceback, то есть список объектов, а не текстовый документ.
+         Пакет называется "AvalonEdit" (НЕ "ICSharpCode.AvalonEdit": под тем id лежит
+         заброшенная 4.3.0-alpha), а сборка внутри него — ICSharpCode.AvalonEdit. -->
+    <PackageReference Include="AvalonEdit" Version="6.3.1.120" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Тот же файл ещё и ресурс: Window.Icon читает его по URI пакета. -->
+    <Resource Include="Resources\cockpit.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Определение подсветки грузится из встроенного ресурса по имени
+         WotModCockpit.App.Resources.Python-Mode.xshd (см. PythonSourceView.LoadPythonHighlighting). -->
+    <EmbeddedResource Include="Resources\Python-Mode.xshd" />
+  </ItemGroup>
+
+</Project>

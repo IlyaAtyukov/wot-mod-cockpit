@@ -1,0 +1,481 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:conv="clr-namespace:WotModCockpit.App.Converters">
+
+    <!--
+        РЕДАКТОРЫ СВОЙСТВ по типам контролов. Ключ шаблона — "Editor." + значение поля
+        type шаблона ModsSettingsAPI (Editor.CheckBox, Editor.Slider, …); выбирает их
+        SettingsTemplateSelector.
+
+        Показывается ТОЛЬКО то, что окно настроек реально читает у этого типа. Питоновские
+        фабрики принимают больше: button= у восьми типов, width= у нескольких, tooltip
+        у пунктов списка — но окно всё это у большинства типов не читает вовсе, и поле,
+        которое ничего не делает, в редакторе хуже отсутствующего.
+
+        Кисти и стили берутся ЧЕРЕЗ DynamicResource: словарь подключается к экрану через
+        MergedDictionaries, то есть грузится отдельным разбором, и статическая ссылка
+        на ресурс приложения из него не гарантируется.
+    -->
+
+    <conv:BoolToVisibilityConverter x:Key="Editor.BoolToVis" />
+
+    <!-- ==================================================== общие части редактора -->
+
+    <DataTemplate x:Key="Editor.Part.Text">
+        <StackPanel Margin="0,0,0,10">
+            <TextBlock Text="Подпись" Style="{DynamicResource Style.FieldLabel}" />
+            <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.Part.VarName">
+        <StackPanel Margin="0,0,0,10">
+            <TextBlock Text="Ключ настройки · varName" Style="{DynamicResource Style.FieldLabel}" />
+            <TextBox Text="{Binding VarName, UpdateSourceTrigger=PropertyChanged}"
+                     FontFamily="{DynamicResource Font.Mono}" />
+            <TextBlock Text="под этим именем значение приходит в мод; ASCII, уникально в обеих колонках, не 'enabled'"
+                       FontSize="9"
+                       TextWrapping="Wrap"
+                       Margin="0,2,0,0"
+                       Foreground="{DynamicResource Brush.TextMuted}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.Part.Tooltip">
+        <StackPanel Margin="0,4,0,10">
+            <Grid Margin="0,0,0,4">
+                <TextBlock Text="Подсказка" Style="{DynamicResource Style.FieldLabel}" />
+                <ToggleButton Style="{DynamicResource Style.Chip}"
+                              HorizontalAlignment="Right"
+                              Content="как есть"
+                              IsChecked="{Binding RawTooltip, Mode=TwoWay}"
+                              ToolTip="ввести строку подсказки целиком, не раскладывая её на секции" />
+            </Grid>
+
+            <StackPanel Visibility="{Binding RawTooltip, Converter={StaticResource Editor.BoolToVis}, ConverterParameter=invert}">
+                <TextBlock Text="заголовок · {HEADER}" Style="{DynamicResource Style.FieldLabel}" />
+                <TextBox Text="{Binding TooltipHeader, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+
+                <TextBlock Text="текст · {BODY}" Style="{DynamicResource Style.FieldLabel}" />
+                <TextBox Text="{Binding TooltipBody, UpdateSourceTrigger=PropertyChanged}"
+                         AcceptsReturn="True"
+                         TextWrapping="Wrap"
+                         MinHeight="42"
+                         VerticalScrollBarVisibility="Auto"
+                         Margin="0,0,0,4" />
+
+                <TextBlock Text="примечание · {NOTE}" Style="{DynamicResource Style.FieldLabel}" />
+                <TextBox Text="{Binding TooltipNote, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+
+                <TextBlock Text="внимание · {ATTENTION}" Style="{DynamicResource Style.FieldLabel}" />
+                <TextBox Text="{Binding TooltipAttention, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+            <TextBox Text="{Binding TooltipRaw, UpdateSourceTrigger=PropertyChanged}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     MinHeight="60"
+                     VerticalScrollBarVisibility="Auto"
+                     Visibility="{Binding RawTooltip, Converter={StaticResource Editor.BoolToVis}}" />
+
+            <TextBlock Text="{Binding Tooltip}"
+                       FontSize="9"
+                       FontFamily="{DynamicResource Font.Mono}"
+                       TextWrapping="Wrap"
+                       Margin="0,4,0,0"
+                       Foreground="{DynamicResource Brush.TextMuted}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.Part.Options">
+        <StackPanel Margin="0,0,0,10">
+            <TextBlock Text="Пункты списка" Style="{DynamicResource Style.FieldLabel}" />
+
+            <Border Background="#FF17171A"
+                    BorderBrush="{DynamicResource Brush.Border}"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    Padding="2"
+                    MaxHeight="120">
+                <ListBox ItemsSource="{Binding Options}"
+                         SelectedItem="{Binding SelectedOption, Mode=TwoWay}"
+                         DisplayMemberPath="Label"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto" />
+            </Border>
+
+            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                <Button Style="{DynamicResource Style.SmallButton}"
+                        Content="+ пункт"
+                        Margin="0,0,4,0"
+                        Command="{Binding AddOptionCommand}" />
+                <Button Style="{DynamicResource Style.SmallButton}"
+                        Content="удалить"
+                        Margin="0,0,4,0"
+                        Command="{Binding RemoveOptionCommand}" />
+                <Button Style="{DynamicResource Style.SmallButton}"
+                        Content="вверх"
+                        Margin="0,0,4,0"
+                        Command="{Binding MoveOptionUpCommand}" />
+                <Button Style="{DynamicResource Style.SmallButton}"
+                        Content="вниз"
+                        Command="{Binding MoveOptionDownCommand}" />
+            </StackPanel>
+
+            <StackPanel Margin="0,6,0,0" DataContext="{Binding SelectedOption}">
+                <TextBlock Text="текст пункта" Style="{DynamicResource Style.FieldLabel}" />
+                <TextBox Text="{Binding Label, UpdateSourceTrigger=PropertyChanged}" />
+
+                <TextBlock Text="подсказка пункта (окно 1.6.4 её не читает)"
+                           Style="{DynamicResource Style.FieldLabel}"
+                           Margin="0,4,0,0" />
+                <TextBox Text="{Binding Tooltip, UpdateSourceTrigger=PropertyChanged}" />
+
+                <!-- Пункт бывает носителем данных чужого мода (у живого InfoPanel это
+                     'filename' с путём к скину). Такие ключи дизайнер не правит, но
+                     возвращает в шаблон как есть — и говорит об этом. -->
+                <TextBlock Text="{Binding ExtraSummary}"
+                           FontSize="9"
+                           TextWrapping="Wrap"
+                           Margin="0,4,0,0"
+                           Foreground="{DynamicResource Brush.TextMuted}"
+                           Visibility="{Binding HasExtra, Converter={StaticResource Editor.BoolToVis}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
+            </StackPanel>
+
+            <TextBlock Text="Значение по умолчанию" Style="{DynamicResource Style.FieldLabel}" Margin="0,8,0,0" />
+            <!-- ItemTemplate, а не DisplayMemberPath: у ComboBox с переопределённым
+                 шаблоном поле выбора рисует SelectionBoxItem через SelectionBoxItemTemplate,
+                 и при DisplayMemberPath в нём оказывается ToString() объекта. -->
+            <ComboBox ItemsSource="{Binding Options}"
+                      SelectedIndex="{Binding IndexValue, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBlock Text="в шаблон уедет ИНДЕКС пункта, а не его текст"
+                       FontSize="9"
+                       Margin="0,2,0,0"
+                       Foreground="{DynamicResource Brush.TextMuted}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.Part.Range">
+        <Grid Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                <TextBlock Text="минимум" Style="{DynamicResource Style.FieldLabel}" />
+                <TextBox Text="{Binding MinimumText, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Margin="0,0,4,0">
+                <TextBlock Text="максимум" Style="{DynamicResource Style.FieldLabel}" />
+                <TextBox Text="{Binding MaximumText, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+
+            <StackPanel Grid.Column="2">
+                <TextBlock Text="шаг" Style="{DynamicResource Style.FieldLabel}" />
+                <TextBox Text="{Binding SnapText, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.Part.Width">
+        <StackPanel Margin="0,0,0,10">
+            <TextBlock Text="Ширина, px" Style="{DynamicResource Style.FieldLabel}" />
+
+            <!-- Плейсхолдер, а не заполненное поле: пустая ширина = ключа width в шаблоне
+                 нет вовсе, и окно подставляет 200 само. Ровно так делают фабрики API. -->
+            <Grid>
+                <TextBox x:Name="WidthBox" Text="{Binding WidthText, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBlock Text="200 — умолчание окна"
+                           IsHitTestVisible="False"
+                           FontStyle="Italic"
+                           Margin="5,0,0,0"
+                           VerticalAlignment="Center"
+                           Foreground="{DynamicResource Brush.TextMuted}"
+                           Visibility="{Binding UsesDefaultWidth, Converter={StaticResource Editor.BoolToVis}, FallbackValue=Collapsed, TargetNullValue=Collapsed}" />
+            </Grid>
+
+            <TextBlock Text="пусто — ключа width в шаблоне не будет, окно подставит своё умолчание 200; на колонку всего 430 px"
+                       FontSize="9"
+                       TextWrapping="Wrap"
+                       Margin="0,2,0,0"
+                       Foreground="{DynamicResource Brush.TextMuted}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <!-- ==================================================== редакторы по типам -->
+
+    <DataTemplate x:Key="Editor.Label">
+        <StackPanel>
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Text}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Tooltip}" />
+            <TextBlock Text="У заголовка нет ни varName, ни значения: добавить их нельзя — окно читает у компонента с varName поле returnValue, а у подписи его нет, и «Применить» сломается."
+                       FontSize="10"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource Brush.TextMuted}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.Empty">
+        <StackPanel>
+            <TextBlock Text="Пустая строка"
+                       FontWeight="Bold"
+                       Margin="0,0,0,6"
+                       Foreground="{DynamicResource Brush.Text}" />
+            <TextBlock Text="Единственный компонент без единого поля: в шаблоне это ровно {'type': 'Empty'}. В окне даёт распорку высотой 20 px и в настройки не попадает. Настраивать нечего."
+                       FontSize="11"
+                       TextWrapping="Wrap"
+                       Foreground="{DynamicResource Brush.TextMuted}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.CheckBox">
+        <StackPanel>
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Text}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.VarName}" />
+
+            <TextBlock Text="Значение по умолчанию" Style="{DynamicResource Style.FieldLabel}" />
+            <ToggleButton Style="{DynamicResource Style.Chip}"
+                          HorizontalAlignment="Left"
+                          Margin="0,0,0,10"
+                          IsChecked="{Binding BoolValue, Mode=TwoWay}">
+                <TextBlock>
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="выключено" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding BoolValue}" Value="True">
+                                    <Setter Property="Text" Value="включено" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </ToggleButton>
+
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Tooltip}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.RadioButtonGroup">
+        <StackPanel>
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Text}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.VarName}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Options}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Tooltip}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.Dropdown">
+        <StackPanel>
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Text}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.VarName}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Options}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Width}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Tooltip}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.Slider">
+        <StackPanel>
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Text}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.VarName}" />
+
+            <TextBlock Text="Значение по умолчанию" Style="{DynamicResource Style.FieldLabel}" />
+            <TextBox Text="{Binding NumberText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Range}" />
+
+            <TextBlock Text="Формат метки" Style="{DynamicResource Style.FieldLabel}" />
+            <TextBox Text="{Binding Format, UpdateSourceTrigger=PropertyChanged}"
+                     FontFamily="{DynamicResource Font.Mono}" />
+            <TextBlock Text="окно заменит ВСЕ вхождения {{value}} значением: «{{value}} сек.», «Множитель: {{value}}»"
+                       FontSize="9"
+                       TextWrapping="Wrap"
+                       Margin="0,2,0,10"
+                       Foreground="{DynamicResource Brush.TextMuted}" />
+
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Width}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Tooltip}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.TextInput">
+        <StackPanel>
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Text}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.VarName}" />
+
+            <TextBlock Text="Значение по умолчанию" Style="{DynamicResource Style.FieldLabel}" />
+            <TextBox Text="{Binding StringValue, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+            <TextBlock Text="ввод в окне ничем не ограничен: ни restrict, ни maxChars окно не выставляет"
+                       FontSize="9"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,10"
+                       Foreground="{DynamicResource Brush.TextMuted}" />
+
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Width}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Tooltip}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.NumericStepper">
+        <StackPanel>
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Text}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.VarName}" />
+
+            <TextBlock Text="Значение по умолчанию" Style="{DynamicResource Style.FieldLabel}" />
+            <TextBox Text="{Binding NumberText, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Range}" />
+
+            <TextBlock Text="Ручной ввод числа" Style="{DynamicResource Style.FieldLabel}" />
+            <ToggleButton Style="{DynamicResource Style.Chip}"
+                          HorizontalAlignment="Left"
+                          Margin="0,0,0,10"
+                          Content="canManualInput"
+                          IsChecked="{Binding CanManualInput, Mode=TwoWay}"
+                          ToolTip="фабрика пишет этот ключ всегда; по умолчанию False" />
+
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Tooltip}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.HotKey">
+        <StackPanel>
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Text}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.VarName}" />
+
+            <TextBlock Text="Сочетание клавиш" Style="{DynamicResource Style.FieldLabel}" />
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                <ToggleButton Style="{DynamicResource Style.Chip}"
+                              Content="Ctrl"
+                              Margin="0,0,4,0"
+                              IsChecked="{Binding CtrlKey, Mode=TwoWay}"
+                              ToolTip="спецкод -2: подойдёт любой из левого и правого Ctrl" />
+                <ToggleButton Style="{DynamicResource Style.Chip}"
+                              Content="Alt"
+                              Margin="0,0,4,0"
+                              IsChecked="{Binding AltKey, Mode=TwoWay}"
+                              ToolTip="спецкод -1" />
+                <ToggleButton Style="{DynamicResource Style.Chip}"
+                              Content="Shift"
+                              IsChecked="{Binding ShiftKey, Mode=TwoWay}"
+                              ToolTip="спецкод -3" />
+            </StackPanel>
+
+            <ComboBox ItemsSource="{Binding DataContext.KnownKeys, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                      SelectedItem="{Binding MainKey, Mode=TwoWay}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Display}" FontFamily="{DynamicResource Font.Mono}" FontSize="11" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+
+            <TextBlock Margin="0,4,0,10" FontSize="10" TextWrapping="Wrap" Foreground="{DynamicResource Brush.TextMuted}">
+                <Run Text="в шаблон уедет" />
+                <Run Text="{Binding HotKeyLiteral, Mode=OneWay}" FontFamily="{DynamicResource Font.Mono}" />
+                <LineBreak />
+                <Run Text="проверяется как checkKeyset: все коды должны быть нажаты одновременно" />
+            </TextBlock>
+
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Tooltip}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.ColorChoice">
+        <StackPanel>
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Text}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.VarName}" />
+
+            <TextBlock Text="Цвет по умолчанию · hex без решётки" Style="{DynamicResource Style.FieldLabel}" />
+            <Grid Margin="0,0,0,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0"
+                         Text="{Binding ColorValue, UpdateSourceTrigger=PropertyChanged}"
+                         FontFamily="{DynamicResource Font.Mono}"
+                         MaxLength="7" />
+                <Border Grid.Column="1"
+                        Width="34"
+                        Margin="6,0,0,0"
+                        Background="{Binding ColorBrush}"
+                        BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="1"
+                        CornerRadius="3" />
+            </Grid>
+            <TextBlock Text="из пипетки значение возвращается строчными и БЕЗ ведущих нулей (чёрный придёт как '0') — приводите его у себя: value.zfill(6).upper()"
+                       FontSize="9"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,10"
+                       Foreground="{DynamicResource Brush.TextMuted}" />
+
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Tooltip}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.RangeSlider">
+        <StackPanel>
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Text}" />
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.VarName}" />
+
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                    <TextBlock Text="левый конец" Style="{DynamicResource Style.FieldLabel}" />
+                    <TextBox Text="{Binding RangeLowText, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="правый конец" Style="{DynamicResource Style.FieldLabel}" />
+                    <TextBox Text="{Binding RangeHighText, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Grid>
+
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Range}" />
+
+            <Grid Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Margin="0,0,4,0">
+                    <TextBlock Text="деление" Style="{DynamicResource Style.FieldLabel}" />
+                    <TextBox Text="{Binding DivisionStepText, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1" Margin="0,0,4,0">
+                    <TextBlock Text="мин. ширина" Style="{DynamicResource Style.FieldLabel}" />
+                    <TextBox Text="{Binding MinRangeDistanceText, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="шаг подписей" Style="{DynamicResource Style.FieldLabel}" />
+                    <TextBox Text="{Binding DivisionLabelStepText, UpdateSourceTrigger=PropertyChanged}" />
+                </StackPanel>
+            </Grid>
+
+            <TextBlock Text="приписка к подписям шкалы" Style="{DynamicResource Style.FieldLabel}" />
+            <TextBox Text="{Binding DivisionLabelPostfix, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,10" />
+
+            <ContentPresenter Content="{Binding}" ContentTemplate="{StaticResource Editor.Part.Tooltip}" />
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="Editor.Default">
+        <TextBlock Text="Для этого типа редактор не описан."
+                   TextWrapping="Wrap"
+                   Foreground="{DynamicResource Brush.TextMuted}" />
+    </DataTemplate>
+
+</ResourceDictionary>

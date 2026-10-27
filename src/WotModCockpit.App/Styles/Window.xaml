@@ -1,0 +1,207 @@
+<!--
+    ШАБЛОН ОКНА КОКПИТА.
+
+    Системная рамка выключена, поэтому всё, что обычно рисует Windows — углы,
+    шапку, кнопки, — рисуется здесь. Логика, которая в XAML не выражается
+    (тяга за края, перетаскивание за шапку, разворот по рабочей области),
+    живёт в Controls/ChromeWindow.cs.
+
+    СКРУГЛЕНИЕ. Целевая система — Windows 10, а DWM умеет скруглять окна только
+    с Windows 11. Значит углы рисует само приложение: внешний Border с
+    CornerRadius поверх прозрачного окна. Отсюда же два следствия, и оба учтены
+    ниже: содержимое обязано обрезаться по тому же радиусу (иначе оно вылезет за
+    угол), а в развёрнутом состоянии скругление надо убирать — у развёрнутого
+    окна нет углов.
+
+    ВИДИМАЯ РАМКА — ЭТО КРАЙ ОКНА, И ТЕНИ НЕТ. Раньше рамка стояла с отступом в
+    десять пикселей, а в отступе рисовалась тень. Выглядело это поле пустым, а
+    вело себя как окно: прозрачное окно слоистое, и Windows отдаёт ему мышь по
+    каждому пикселю, у которого альфа не ноль, — то есть по всей тени. Курсор
+    превращался в стрелки изменения размера ещё до видимой границы, и тянуть
+    окно приходилось за воздух. Без отступа снаружи рамки ни одного пикселя
+    окна нет, и мышь ловится ровно по тому, что видно.
+
+    Тень ушла вместе с отступом: рисовать её было больше негде. Системную тень
+    DWM здесь не получить — она требует окна без прозрачности, а без
+    прозрачности на Windows 10 не будет скруглённых углов. Край окна держит
+    линия рамки Brush.Border.
+-->
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:WotModCockpit.App.Controls">
+
+    <!-- Скругление окна и радиус обрезки содержимого — ОДНО число на оба места. -->
+    <CornerRadius x:Key="Window.Corner">10</CornerRadius>
+
+    <SolidColorBrush x:Key="Brush.Caption" Color="#FF202024" />
+    <SolidColorBrush x:Key="Brush.CaptionHover" Color="#FF33333A" />
+    <SolidColorBrush x:Key="Brush.CloseHover" Color="#FFC4413F" />
+
+    <!-- ==================== КНОПКИ ШАПКИ ==================== -->
+    <Style x:Key="Style.CaptionButton" TargetType="Button">
+        <Setter Property="Width" Value="44" />
+        <Setter Property="Height" Value="30" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.TextMuted}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Focusable" Value="False" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Brush.CaptionHover}" />
+                            <Setter Property="Foreground" Value="{StaticResource Brush.Text}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Закрытие красится в красный: это единственная кнопка, у которой
+         промах стоит потерянной работы, и её надо отличать не только местом. -->
+    <Style x:Key="Style.CloseButton" TargetType="Button" BasedOn="{StaticResource Style.CaptionButton}">
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource Brush.CloseHover}" />
+                <Setter Property="Foreground" Value="White" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Значки нарисованы линиями, а не шрифтом: символьные шрифты для кнопок
+         окна (Segoe MDL2) есть не во всякой сборке Windows, и промах даёт
+         пустой квадрат вместо крестика. -->
+    <Style x:Key="Style.CaptionGlyph" TargetType="Path">
+        <Setter Property="Stroke" Value="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" />
+        <Setter Property="StrokeThickness" Value="1" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="RenderOptions.EdgeMode" Value="Aliased" />
+    </Style>
+
+    <!-- ==================== САМО ОКНО ====================
+         Стиль безымянный, но берётся он НЕ неявным поиском: ChromeWindow сам
+         запрашивает ресурс с ключом typeof(ChromeWindow) — почему именно так,
+         написано в Controls/ChromeWindow.cs. По той же причине здесь заданы
+         шрифт и округление раскладки: безымянный Style с TargetType="Window"
+         из DarkTheme.xaml до окон-наследников не доходит. -->
+    <Style TargetType="{x:Type controls:ChromeWindow}">
+        <Setter Property="CornerRadius" Value="{StaticResource Window.Corner}" />
+        <Setter Property="Foreground" Value="{StaticResource Brush.Text}" />
+        <Setter Property="FontFamily" Value="{StaticResource Font.Ui}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+        <Setter Property="UseLayoutRounding" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type controls:ChromeWindow}">
+                    <!-- Рамка стоит ВПЛОТНУЮ к краю окна: снаружи неё не должно
+                         быть ни одного пикселя окна. Почему — в шапке файла. -->
+                    <Border x:Name="Shell"
+                            Background="{StaticResource Brush.Window}"
+                            BorderBrush="{StaticResource Brush.Border}"
+                            BorderThickness="1"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                        <!-- PART_Clip: содержимое окна, обрезанное по тем же
+                             углам. Обрезку ставит ChromeWindow — без неё шапка
+                             и содержимое выходят за скругление прямыми краями.
+                             Радиус обрезки берётся из того же CornerRadius. -->
+                        <Grid x:Name="PART_Clip">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <!-- ШАПКА. Именем PART_Caption её находит
+                                 ChromeWindow, когда решает, отдавать ли
+                                 нажатие системе под перетаскивание. -->
+                            <Grid x:Name="PART_Caption" Grid.Row="0" Height="34"
+                                  Background="{StaticResource Brush.Caption}">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Image Grid.Column="0"
+                                       Source="{Binding Icon, RelativeSource={RelativeSource TemplatedParent}}"
+                                       Width="16" Height="16" Margin="10,0,8,0"
+                                       VerticalAlignment="Center"
+                                       RenderOptions.BitmapScalingMode="HighQuality" />
+
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Title, RelativeSource={RelativeSource TemplatedParent}}"
+                                           VerticalAlignment="Center"
+                                           FontSize="12"
+                                           TextTrimming="CharacterEllipsis"
+                                           Foreground="{StaticResource Brush.TextMuted}" />
+
+                                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                                    <Button x:Name="MinimizeButton"
+                                            Style="{StaticResource Style.CaptionButton}"
+                                            Command="{x:Static SystemCommands.MinimizeWindowCommand}"
+                                            ToolTip="Свернуть">
+                                        <Path Style="{StaticResource Style.CaptionGlyph}" Data="M 0,0 H 10" />
+                                    </Button>
+                                    <Button x:Name="MaximizeButton"
+                                            Style="{StaticResource Style.CaptionButton}"
+                                            Command="{x:Static SystemCommands.MaximizeWindowCommand}"
+                                            ToolTip="Развернуть">
+                                        <Path Style="{StaticResource Style.CaptionGlyph}" Data="M 0,0 H 10 V 10 H 0 Z" />
+                                    </Button>
+                                    <Button x:Name="RestoreButton"
+                                            Style="{StaticResource Style.CaptionButton}"
+                                            Command="{x:Static SystemCommands.RestoreWindowCommand}"
+                                            Visibility="Collapsed"
+                                            ToolTip="Восстановить">
+                                        <Path Style="{StaticResource Style.CaptionGlyph}"
+                                              Data="M 0,2.5 H 7.5 V 10 H 0 Z M 2.5,2.5 V 0 H 10 V 7.5 H 7.5" />
+                                    </Button>
+                                    <Button x:Name="CloseButton"
+                                            Style="{StaticResource Style.CloseButton}"
+                                            Command="{x:Static SystemCommands.CloseWindowCommand}"
+                                            ToolTip="Закрыть">
+                                        <Path Style="{StaticResource Style.CaptionGlyph}" Data="M 0,0 L 10,10 M 10,0 L 0,10" />
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                            <AdornerDecorator Grid.Row="1">
+                                <ContentPresenter />
+                            </AdornerDecorator>
+                        </Grid>
+                    </Border>
+
+                    <ControlTemplate.Triggers>
+                        <!-- РАЗВЁРНУТОЕ ОКНО: ни углов, ни линии рамки — оно
+                             стоит вровень с краями рабочей области. -->
+                        <Trigger Property="WindowState" Value="Maximized">
+                            <!-- Радиус снимается у САМОГО окна: по нему же считается
+                                 обрезка содержимого, иначе она осталась бы круглой. -->
+                            <Setter Property="CornerRadius" Value="0" />
+                            <Setter TargetName="Shell" Property="BorderThickness" Value="0" />
+                            <Setter TargetName="MaximizeButton" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="RestoreButton" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="ResizeMode" Value="NoResize">
+                            <Setter TargetName="MaximizeButton" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="MinimizeButton" Property="Visibility" Value="Collapsed" />
+                        </Trigger>
+                        <!-- Неактивное окно приглушается — так видно, какое из
+                             двух открытых окон сейчас принимает ввод. -->
+                        <Trigger Property="IsActive" Value="False">
+                            <Setter TargetName="Shell" Property="BorderBrush" Value="#FF2C2C31" />
+                            <Setter TargetName="PART_Caption" Property="Background" Value="#FF1D1D21" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

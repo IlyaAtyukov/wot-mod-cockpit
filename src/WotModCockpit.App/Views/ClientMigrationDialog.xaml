@@ -1,0 +1,225 @@
+<controls:ChromeWindow x:Class="WotModCockpit.App.Views.ClientMigrationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:conv="clr-namespace:WotModCockpit.App.Converters"
+        xmlns:controls="clr-namespace:WotModCockpit.App.Controls"
+        xmlns:vm="clr-namespace:WotModCockpit.App.ViewModels"
+        Title="Переход на новую версию клиента"
+        Icon="/WotModCockpit.App;component/Resources/cockpit.ico"
+        Width="800"
+        Height="740"
+        MinWidth="620"
+        MinHeight="560"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False">
+
+    <!--
+        ОКНО «ПЕРЕХОД НА НОВУЮ ВЕРСИЮ КЛИЕНТА».
+
+        После обновления игры свои моды остаются в каталоге прошлой версии. Окно по кнопке:
+        готовит исходники новой версии (готовые или из scripts.pkg), проверяет по ним каждый свой
+        мод, переключает кокпит на новые исходники и переносит то, что проверку прошло.
+
+        Мод с проблемами не отмечается — его можно отметить и перенести вручную, с отдельным
+        вопросом. Выключенные в прошлой версии показываются только для сведения. Каталог прошлой
+        версии не меняется.
+    -->
+
+    <controls:ChromeWindow.Resources>
+        <conv:BoolToVisibilityConverter x:Key="BoolToVis" />
+        <conv:StringToVisibilityConverter x:Key="StrToVis" />
+        <conv:CountToVisibilityConverter x:Key="CountToVis" />
+
+        <Style x:Key="Style.DialogLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Brush.TextMuted}" />
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+
+        <!-- Строка мода: галочка, имя, старый файл, вердикт, находки, итог переноса. -->
+        <DataTemplate x:Key="MigrationRow" DataType="{x:Type vm:MigrationRowViewModel}">
+            <Border Padding="10,6" BorderBrush="{StaticResource Brush.Border}" BorderThickness="0,0,0,1">
+                <StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <CheckBox Grid.Column="0"
+                                  IsChecked="{Binding IsChecked}"
+                                  IsEnabled="{Binding CanTransfer}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" />
+                                <TextBlock Style="{StaticResource Style.Muted}" FontFamily="{StaticResource Font.Mono}" Text="{Binding OldFile}" />
+                            </StackPanel>
+                        </CheckBox>
+
+                        <TextBlock Grid.Column="1"
+                                   Margin="12,0,0,0"
+                                   MaxWidth="330"
+                                   VerticalAlignment="Center"
+                                   TextAlignment="Right"
+                                   TextWrapping="Wrap"
+                                   FontSize="11"
+                                   Text="{Binding VerdictText}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Foreground" Value="{StaticResource Brush.TextMuted}" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsCompatible}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource Brush.OkText}" />
+                                        </DataTrigger>
+                                        <!-- «совместим» без сравнения с прошлой версией — не доказано -->
+                                        <DataTrigger Binding="{Binding IsVerified}" Value="False">
+                                            <Setter Property="Foreground" Value="{StaticResource Brush.WarnText}" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding HasProblem}" Value="True">
+                                            <Setter Property="Foreground" Value="{StaticResource Brush.WarnText}" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
+
+                    <TextBox Margin="22,6,0,0"
+                             Style="{x:Null}"
+                             IsReadOnly="True"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             Foreground="{StaticResource Brush.WarnText}"
+                             FontFamily="{StaticResource Font.Mono}"
+                             FontSize="11"
+                             TextWrapping="Wrap"
+                             Text="{Binding Details, Mode=OneWay}"
+                             Visibility="{Binding Details, Converter={StaticResource StrToVis}}" />
+
+                    <TextBlock Margin="22,4,0,0"
+                               FontSize="11"
+                               TextWrapping="Wrap"
+                               Text="{Binding ResultText}"
+                               Visibility="{Binding ResultText, Converter={StaticResource StrToVis}}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="{StaticResource Brush.TextMuted}" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsTransferred}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource Brush.OkText}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding HasFailed}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource Brush.DangerText}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+    </controls:ChromeWindow.Resources>
+
+    <Grid Margin="18,12,18,16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" MinHeight="160" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock x:Name="HeadlineText" TextWrapping="Wrap" FontWeight="SemiBold" Text="{Binding Headline}" />
+            <TextBlock Margin="0,6,0,0"
+                       FontSize="11"
+                       TextWrapping="Wrap"
+                       Foreground="{StaticResource Brush.TextMuted}"
+                       Text="Переход: исходники новой версии (готовые или извлечённые из scripts.pkg — несколько минут), проверка каждого своего мода по ним, переключение кокпита на новые исходники и перенос. Автоматически переносится только то, что прошло проверку сравнением с исходниками прошлой версии; остальное — вручную, с вопросом. Мод ставится собранным из своего проекта, файл с тем же именем в новом каталоге не перезаписывается. Каталог прошлой версии не меняется, чужие моды не трогаются." />
+        </StackPanel>
+
+        <TextBlock Grid.Row="1" Margin="0,14,0,6" Style="{StaticResource Style.DialogLabel}" Text="СВОИ МОДЫ ПРОШЛОЙ ВЕРСИИ" />
+
+        <Border Grid.Row="2"
+                BorderBrush="{StaticResource Brush.Border}"
+                BorderThickness="1"
+                CornerRadius="3"
+                Background="{StaticResource Brush.Panel}">
+            <Grid>
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="RowList"
+                                  ItemsSource="{Binding Rows}"
+                                  ItemTemplate="{StaticResource MigrationRow}"
+                                  IsEnabled="{Binding IsIdle}" />
+                </ScrollViewer>
+                <TextBlock Style="{StaticResource Style.EmptyState}"
+                           Margin="16"
+                           TextWrapping="Wrap"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Text="В прошлой версии своих модов нет — переносить нечего."
+                           Visibility="{Binding Rows.Count, Converter={StaticResource CountToVis}, ConverterParameter=invert}" />
+            </Grid>
+        </Border>
+
+        <CheckBox x:Name="AutoTransferBox"
+                  Grid.Row="3"
+                  Margin="0,12,0,0"
+                  IsChecked="{Binding AutoTransfer}"
+                  IsEnabled="{Binding IsIdle}">
+            <TextBlock TextWrapping="Wrap" Text="Сразу перенести всё, что проверку прошло (иначе — после проверки кнопкой «Перенести отмеченные»)" />
+        </CheckBox>
+
+        <!-- ============================ ХОД ============================ -->
+        <StackPanel Grid.Row="4" Margin="0,12,0,0">
+            <StackPanel Visibility="{Binding IsWorking, Converter={StaticResource BoolToVis}}">
+                <TextBlock x:Name="StageLine" Style="{StaticResource Style.Muted}" TextWrapping="Wrap" Text="{Binding StageText}" />
+                <ProgressBar Height="6"
+                             Margin="0,4,0,0"
+                             Minimum="0"
+                             Maximum="1"
+                             Value="{Binding Progress, Mode=OneWay}"
+                             IsIndeterminate="{Binding IsIndeterminate}" />
+            </StackPanel>
+            <TextBlock x:Name="StatusLine"
+                       Margin="0,8,0,0"
+                       TextWrapping="Wrap"
+                       Foreground="{StaticResource Brush.Text}"
+                       Text="{Binding StatusText}"
+                       Visibility="{Binding StatusText, Converter={StaticResource StrToVis}}" />
+            <ListBox x:Name="LogList"
+                     Margin="0,6,0,0"
+                     MaxHeight="130"
+                     FontFamily="{StaticResource Font.Mono}"
+                     FontSize="11"
+                     ItemsSource="{Binding Log}"
+                     Visibility="{Binding Log.Count, Converter={StaticResource CountToVis}}" />
+        </StackPanel>
+
+        <!-- ============================ КНОПКИ ============================ -->
+        <StackPanel Grid.Row="5" Margin="0,14,0,0" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="CancelButton"
+                    Content="Остановить"
+                    MinWidth="110"
+                    Margin="0,0,8,0"
+                    Command="{Binding CancelCommand}"
+                    Visibility="{Binding IsWorking, Converter={StaticResource BoolToVis}}" />
+            <Button x:Name="TransferButton"
+                    Content="Перенести отмеченные"
+                    MinWidth="170"
+                    Margin="0,0,8,0"
+                    Command="{Binding TransferSelectedCommand}" />
+            <Button x:Name="StartButton"
+                    Content="Начать переход"
+                    MinWidth="140"
+                    Margin="0,0,8,0"
+                    IsDefault="True"
+                    Command="{Binding StartCommand}" />
+            <Button x:Name="CloseButton"
+                    Content="Закрыть"
+                    MinWidth="90"
+                    IsCancel="True"
+                    Command="{Binding CloseCommand}" />
+        </StackPanel>
+    </Grid>
+</controls:ChromeWindow>

@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Плоский net8.0 БЕЗ суффикса -windows: Core обязан собираться и тестироваться
+         без WPF и без WindowsDesktop-рантайма. Ни одной ссылки на PresentationCore/
+         PresentationFramework/System.Windows.* здесь быть не должно. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>WotModCockpit.Core</RootNamespace>
+    <AssemblyName>WotModCockpit.Core</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Список модулей из 21 дополнительного .pkg игры (battle_royale, frontline, comp7, ...).
+         Индекс этапа 2 собран только по scripts.pkg, и без этого списка правило WOT002
+         систематически ругалось бы на существующие модули. -->
+    <EmbeddedResource Include="Preflight\Data\ExtraClientModules.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Код рецептов хранится настоящими .py-файлами, а не строками в C#: только так его
+         можно прогнать через tools/check_py2_syntax.py (это делает тест RecipeSyntaxTests)
+         и править с подсветкой, без экранирования кавычек. -->
+    <EmbeddedResource Include="Recipes\Recipes\*.py" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Каркас модуля настроек (этап 4). Тоже настоящий .py, а не строка в C#, и по той же
+         причине: тест SettingsCodeGeneratorSyntaxTests гоняет сам ресурс через
+         tools/check_py2_syntax.py, а редактор подсвечивает его как питон. -->
+    <EmbeddedResource Include="Settings\SettingsCodeTemplate.py" />
+  </ItemGroup>
+
+</Project>

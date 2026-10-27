@@ -1,0 +1,788 @@
+{
+    "settings": {
+        "ru.example.alpha": {
+            "enabled": true,
+            "inTraining": true,
+            "intervalMin": 2,
+            "outputMode": 0,
+            "showKey": [
+                61,
+                [
+                    29,
+                    157
+                ]
+            ]
+        },
+        "ru.example.basic": {
+            "hangarClock": true,
+            "logLines": 9,
+            "markerSize": 1.7,
+            "reloadSound": true
+        },
+        "ru.example.countdown": {
+            "blinkLastMinute": true,
+            "blinkSec": 2,
+            "enabled": true,
+            "showRemaining": true,
+            "timerKey": [
+                [
+                    56,
+                    184
+                ]
+            ]
+        },
+        "ru.example.hit_log": {
+            "displayMode": 0,
+            "enabled": true,
+            "expandOnHover": false,
+            "hideAfterBattle": true,
+            "highlightLast": true,
+            "logKey": [
+                [
+                    56,
+                    184
+                ]
+            ],
+            "rowsShown": 1
+        },
+        "ru.example.notices": {
+            "anchor": 0,
+            "copyToChat": false,
+            "enabled": true,
+            "flashBorder": true,
+            "keepHistory": true,
+            "panelSize": 1,
+            "skinStyle": 1,
+            "soundOn": true
+        },
+        "ru.example.paint": {
+            "enabled": true,
+            "onlyOthers": 0,
+            "paintKey": [
+                -1
+            ],
+            "paintMode": 0,
+            "paletteId": 0,
+            "plainOutline": true,
+            "skipArty": false
+        },
+        "ru.example.panel_dock": {
+            "dockSide": 0,
+            "enabled": true,
+            "panelKey": [
+                [
+                    56,
+                    184
+                ]
+            ],
+            "showSetNumber": true,
+            "visibility": 0
+        },
+        "ru.example.reticle": {
+            "colorScheme": 0,
+            "enabled": true,
+            "markerShape": 0,
+            "smoothDraw": false
+        },
+        "ru.example.stats": {
+            "metric": 0,
+            "notifyChange": true,
+            "roundValues": false
+        },
+        "ru.example.tank_card": {
+            "enabled": true,
+            "forAllies": true,
+            "hideDelay": 5,
+            "inArcade": true,
+            "inReplays": true,
+            "inSniper": true,
+            "inStrategic": true,
+            "layoutId": 1,
+            "shiftX": 0,
+            "shiftY": 0
+        },
+        "ru.example.ui-scale": {
+            "enabled": false,
+            "uiScale": 1.0
+        }
+    },
+    "storage": {},
+    "templates": {
+        "ru.example.alpha": {
+            "column1": [
+                {
+                    "options": [
+                        {
+                            "label": "В системный канал"
+                        },
+                        {
+                            "label": "Крупно поверх прицела"
+                        },
+                        {
+                            "label": "Только звуком"
+                        }
+                    ],
+                    "text": "Как напоминать",
+                    "tooltip": "{HEADER}Как напоминать{/HEADER}{BODY}Выберите, каким способом выводить напоминание{/BODY}",
+                    "type": "RadioButtonGroup",
+                    "value": 0,
+                    "varName": "outputMode"
+                },
+                {
+                    "text": "Напоминать и в тренировочных боях",
+                    "tooltip": "{HEADER}Напоминать и в тренировочных боях{/HEADER}{BODY}Без этой галочки напоминания приходят только в обычных боях{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "inTraining"
+                }
+            ],
+            "column2": [
+                {
+                    "format": "{{value}} мин.",
+                    "maximum": 14,
+                    "minimum": 1,
+                    "snapInterval": 1,
+                    "text": "Интервал между напоминаниями",
+                    "tooltip": "{HEADER}Интервал{/HEADER}{BODY}Через сколько минут повторять напоминание. Слишком частые напоминания быстро надоедают, поэтому начните с двух-трёх минут{/BODY}",
+                    "type": "Slider",
+                    "value": 2,
+                    "varName": "intervalMin",
+                    "width": 150
+                },
+                {
+                    "text": "Клавиша: напомнить прямо сейчас",
+                    "tooltip": "{HEADER}Клавиша напоминания{/HEADER}{BODY}Показывает напоминание вне очереди.{/BODY}",
+                    "type": "HotKey",
+                    "value": [
+                        61,
+                        [
+                            29,
+                            157
+                        ]
+                    ],
+                    "varName": "showKey"
+                }
+            ],
+            "enabled": true,
+            "modDisplayName": "Пример: напоминания"
+        },
+        "ru.example.basic": {
+            "column1": [
+                {
+                    "text": "Часы в ангаре",
+                    "tooltip": "{HEADER}Часы в ангаре{/HEADER}{BODY}Показывает текущее время в углу ангара.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "hangarClock"
+                },
+                {
+                    "text": "Звук окончания перезарядки",
+                    "tooltip": "{HEADER}Звук окончания перезарядки{/HEADER}{BODY}Короткий сигнал, когда орудие снова готово к выстрелу.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "reloadSound"
+                }
+            ],
+            "column2": [
+                {
+                    "format": "Коэффициент {{value}}",
+                    "maximum": 2.0,
+                    "minimum": 0.8,
+                    "snapInterval": 0.05,
+                    "text": "Размер маркера",
+                    "tooltip": "{HEADER}Размер маркера{/HEADER}{BODY}Меняет только картинку маркера. На игровую механику настройка не влияет.{/BODY}",
+                    "type": "Slider",
+                    "value": 1.7,
+                    "varName": "markerSize"
+                },
+                {
+                    "format": "Строк: {{value}}",
+                    "maximum": 9,
+                    "minimum": 1,
+                    "snapInterval": 1,
+                    "text": "Высота журнала событий",
+                    "tooltip": "{HEADER}Высота журнала событий{/HEADER}{BODY}Сколько строк журнала видно одновременно. На маленьких экранах удобнее меньше.{/BODY}",
+                    "type": "Slider",
+                    "value": 9,
+                    "varName": "logLines"
+                }
+            ],
+            "modDisplayName": "Пример: мелкие удобства"
+        },
+        "ru.example.countdown": {
+            "column1": [
+                {
+                    "text": "Показывать оставшееся время",
+                    "tooltip": "{HEADER}Показывать оставшееся время{/HEADER}{BODY}Крупный таймер до конца боя под миникартой.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "showRemaining"
+                },
+                {
+                    "text": "Мигать в последнюю минуту",
+                    "tooltip": "{HEADER}Мигать в последнюю минуту{/HEADER}{BODY}Таймер мигает, когда до конца боя остаётся меньше минуты.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "blinkLastMinute"
+                }
+            ],
+            "column2": [
+                {
+                    "format": "{{value}} с.",
+                    "maximum": 5.0,
+                    "minimum": 0.5,
+                    "snapInterval": 0.1,
+                    "text": "Длительность вспышки",
+                    "tooltip": "{HEADER}Длительность вспышки{/HEADER}{BODY}Сколько секунд длится одна вспышка таймера <br>Удобное значение — около двух секунд{/BODY}",
+                    "type": "Slider",
+                    "value": 2,
+                    "varName": "blinkSec",
+                    "width": 150
+                },
+                {
+                    "text": "Клавиша: спрятать таймер",
+                    "tooltip": "{HEADER}Клавиша: спрятать таймер{/HEADER}{BODY}Временно убирает таймер с экрана.{/BODY}",
+                    "type": "HotKey",
+                    "value": [
+                        [
+                            56,
+                            184
+                        ]
+                    ],
+                    "varName": "timerKey"
+                }
+            ],
+            "enabled": true,
+            "modDisplayName": "Пример: таймер боя"
+        },
+        "ru.example.hit_log": {
+            "column1": [
+                {
+                    "format": "{{value}}",
+                    "maximum": 3,
+                    "minimum": 1,
+                    "snapInterval": 1,
+                    "text": "Сколько записей показывать",
+                    "tooltip": "{HEADER}Сколько записей показывать{/HEADER}{BODY}Число последних записей о полученном уроне.{/BODY}",
+                    "type": "Slider",
+                    "value": 1,
+                    "varName": "rowsShown",
+                    "width": 150
+                },
+                {
+                    "text": "Выделять последнюю запись",
+                    "tooltip": "{HEADER}Выделять последнюю запись{/HEADER}{BODY}Самая свежая запись журнала рисуется ярче остальных.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "highlightLast"
+                },
+                {
+                    "text": "Раскрывать запись при наведении мыши",
+                    "tooltip": "{HEADER}Раскрывать запись при наведении мыши{/HEADER}{BODY}Подробности записи видны, только пока над ней курсор.{/BODY}",
+                    "type": "CheckBox",
+                    "value": false,
+                    "varName": "expandOnHover"
+                }
+            ],
+            "column2": [
+                {
+                    "text": "Прятать журнал после боя",
+                    "tooltip": "{HEADER}Прятать журнал после боя{/HEADER}{BODY}Журнал исчезает с экрана через несколько секунд после конца боя.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "hideAfterBattle"
+                },
+                {
+                    "itemRenderer": "DropDownListItemRendererSound",
+                    "options": [
+                        {
+                            "label": "Всегда"
+                        },
+                        {
+                            "label": "Пока зажата клавиша"
+                        },
+                        {
+                            "label": "Включать и выключать клавишей"
+                        }
+                    ],
+                    "text": "Когда показывать журнал",
+                    "tooltip": "{HEADER}Когда показывать журнал{/HEADER}{BODY}Выберите режим показа журнала.{/BODY}",
+                    "type": "Dropdown",
+                    "value": 0,
+                    "varName": "displayMode",
+                    "width": 200
+                },
+                {
+                    "text": "Клавиша журнала",
+                    "tooltip": "{HEADER}Клавиша журнала{/HEADER}{BODY}Работает в режимах с клавишей.{/BODY}",
+                    "type": "HotKey",
+                    "value": [
+                        [
+                            56,
+                            184
+                        ]
+                    ],
+                    "varName": "logKey"
+                }
+            ],
+            "enabled": true,
+            "modDisplayName": "Пример: журнал урона"
+        },
+        "ru.example.notices": {
+            "column1": [
+                {
+                    "options": [
+                        {
+                            "label": "Классический вид"
+                        },
+                        {
+                            "label": "Новый вид"
+                        }
+                    ],
+                    "text": "Оформление панели",
+                    "tooltip": "{HEADER}Оформление панели{/HEADER}{BODY}Панель можно перетаскивать мышью при любом оформлении.<br>Классический вид<img src=\"img://mods/example.notices/classic.png\" width=\"300\" height=\"90\"/><br>Новый вид<img src=\"img://mods/example.notices/modern.png\" width=\"300\" height=\"150\"/>{/BODY}",
+                    "type": "RadioButtonGroup",
+                    "value": 1,
+                    "varName": "skinStyle"
+                },
+                {
+                    "options": [
+                        {
+                            "label": "По центру"
+                        },
+                        {
+                            "label": "Слева сверху"
+                        },
+                        {
+                            "label": "Справа сверху"
+                        },
+                        {
+                            "label": "Слева снизу"
+                        },
+                        {
+                            "label": "Справа снизу"
+                        }
+                    ],
+                    "text": "Угол привязки панели",
+                    "tooltip": "{HEADER}Угол привязки панели{/HEADER}{BODY}К какому месту экрана прикреплена панель.<br><img src=\"img://mods/example.notices/anchor.png\" width=\"240\" height=\"135\"/><br>{/BODY}",
+                    "type": "RadioButtonGroup",
+                    "value": 0,
+                    "varName": "anchor"
+                }
+            ],
+            "column2": [
+                {
+                    "itemRenderer": "DropDownListItemRendererSound",
+                    "options": [
+                        {
+                            "label": "Широкая крупная"
+                        },
+                        {
+                            "label": "Широкая мелкая"
+                        },
+                        {
+                            "label": "Узкая крупная"
+                        },
+                        {
+                            "label": "Узкая мелкая"
+                        }
+                    ],
+                    "text": "Размер панели",
+                    "tooltip": "{HEADER}Размер панели{/HEADER}{BODY}Панель бывает широкой и узкой,<br>у каждой есть крупный и мелкий вариант.{/BODY}",
+                    "type": "Dropdown",
+                    "value": 1,
+                    "varName": "panelSize",
+                    "width": 200
+                },
+                {
+                    "text": "Звук нового уведомления",
+                    "tooltip": "{HEADER}Звук нового уведомления{/HEADER}{BODY}Короткий сигнал при появлении уведомления.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "soundOn"
+                },
+                {
+                    "text": "Подсвечивать рамку экрана",
+                    "tooltip": "{HEADER}Подсвечивать рамку экрана{/HEADER}{BODY}Края экрана на мгновение подсвечиваются вместе с уведомлением.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "flashBorder"
+                },
+                {
+                    "text": "Дублировать уведомления в чат",
+                    "tooltip": "{HEADER}Дублировать уведомления в чат{/HEADER}{BODY}Текст уведомления появляется ещё и в чате боя, видимом только вам.{/BODY}",
+                    "type": "CheckBox",
+                    "value": false,
+                    "varName": "copyToChat"
+                },
+                {
+                    "text": "Хранить историю до конца боя",
+                    "tooltip": "{HEADER}Хранить историю до конца боя{/HEADER}{BODY}Прошедшие уведомления можно пролистать до конца боя.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "keepHistory"
+                }
+            ],
+            "enabled": true,
+            "modDisplayName": "Пример: уведомления"
+        },
+        "ru.example.paint": {
+            "column1": [
+                {
+                    "text": "Не раскрашивать на артиллерии",
+                    "tooltip": "{HEADER}Не раскрашивать на артиллерии{/HEADER}{BODY}Пока вы играете на артиллерии, раскраска выключена.{/BODY}",
+                    "type": "CheckBox",
+                    "value": false,
+                    "varName": "skipArty"
+                },
+                {
+                    "text": "Раскрашивать только чужую технику",
+                    "tooltip": "{HEADER}Раскрашивать только чужую технику{/HEADER}{BODY}Своя техника сохраняет обычный вид.{/BODY}",
+                    "type": "CheckBox",
+                    "value": 0,
+                    "varName": "onlyOthers"
+                },
+                {
+                    "options": [
+                        {
+                            "label": "Стандартная палитра"
+                        }
+                    ],
+                    "text": "Палитра",
+                    "tooltip": "{HEADER}Палитра{/HEADER}{BODY}Набор цветов раскраски.{/BODY}",
+                    "type": "Dropdown",
+                    "value": 0,
+                    "varName": "paletteId",
+                    "width": 200
+                }
+            ],
+            "column2": [
+                {
+                    "options": [
+                        {
+                            "label": "Всегда"
+                        },
+                        {
+                            "label": "При наведении прицела"
+                        },
+                        {
+                            "label": "Пока зажата клавиша"
+                        },
+                        {
+                            "label": "Включать и выключать клавишей"
+                        }
+                    ],
+                    "text": "Когда раскрашивать",
+                    "tooltip": "{HEADER}Когда раскрашивать{/HEADER}{BODY}Выберите режим:<br><br>* Всегда — раскраска видна всё время;<br>* При наведении прицела — только на технике под прицелом;<br>* Пока зажата клавиша — пока удерживается клавиша ниже;<br>* Включать и выключать клавишей — по нажатию той же клавиши.{/BODY}",
+                    "type": "Dropdown",
+                    "value": 0,
+                    "varName": "paintMode",
+                    "width": 200
+                },
+                {
+                    "text": "Клавиша раскраски",
+                    "tooltip": "{HEADER}Клавиша раскраски{/HEADER}{BODY}Для режимов с клавишей.{/BODY}",
+                    "type": "HotKey",
+                    "value": [
+                        -1
+                    ],
+                    "varName": "paintKey"
+                },
+                {
+                    "text": "Упрощать контур техники",
+                    "tooltip": "{HEADER}Упрощать контур техники{/HEADER}{BODY}Тонкий контур вместо толстого, чтобы раскраска не терялась.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "plainOutline"
+                }
+            ],
+            "enabled": true,
+            "modDisplayName": "Пример: раскраска техники",
+            "random": 52817
+        },
+        "ru.example.panel_dock": {
+            "column1": [
+                {
+                    "options": [
+                        {
+                            "label": "Всегда"
+                        },
+                        {
+                            "label": "По клавише"
+                        }
+                    ],
+                    "text": "Когда показывать панель",
+                    "tooltip": "{HEADER}Когда показывать панель{/HEADER}{BODY}Режим показа панели в бою.\n\n- <b>Всегда</b> — панель видна весь бой, её можно свернуть.\n- <b>По клавише</b> — панель видна, только пока нажата клавиша.{/BODY}",
+                    "type": "RadioButtonGroup",
+                    "value": 0,
+                    "varName": "visibility"
+                },
+                {
+                    "options": [
+                        {
+                            "label": "Слева"
+                        },
+                        {
+                            "label": "Справа"
+                        },
+                        {
+                            "label": "Где угодно"
+                        }
+                    ],
+                    "text": "Место панели",
+                    "tooltip": "{HEADER}Место панели{/HEADER}{BODY}Где панель стоит в начале боя.\n\n- <b>Слева</b> и <b>Справа</b> — у края экрана.\n- <b>Где угодно</b> — панель можно перетащить мышью.{/BODY}",
+                    "type": "RadioButtonGroup",
+                    "value": 0,
+                    "varName": "dockSide"
+                },
+                {
+                    "text": "Показывать номер комплекта",
+                    "tooltip": "{HEADER}Показывать номер комплекта{/HEADER}{BODY}Рядом с панелью виден номер выбранного комплекта снаряжения.\n\nПри наведении появляется подсказка.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "showSetNumber"
+                }
+            ],
+            "column2": [
+                {
+                    "text": "Клавиша панели",
+                    "tooltip": "{HEADER}Клавиша панели{/HEADER}{BODY}Показывает панель в режиме \"По клавише\".{/BODY}{ATTENTION}Лучше назначить одну клавишу.{/ATTENTION}",
+                    "type": "HotKey",
+                    "value": [
+                        [
+                            56,
+                            184
+                        ]
+                    ],
+                    "varName": "panelKey"
+                }
+            ],
+            "enabled": true,
+            "modDisplayName": "Пример: панель снаряжения"
+        },
+        "ru.example.reticle": {
+            "column1": [
+                {
+                    "options": [
+                        {
+                            "label": "Круг"
+                        },
+                        {
+                            "label": "Крест"
+                        },
+                        {
+                            "label": "Точка"
+                        },
+                        {
+                            "label": "Уголки"
+                        },
+                        {
+                            "label": "Ромб"
+                        }
+                    ],
+                    "text": "Форма маркера",
+                    "tooltip": "{HEADER}Форма маркера{/HEADER}{BODY}Как выглядит маркер в центре прицела.<br><br><img src=\"img://gui/maps/example/reticle_shapes.png\" width=\"240\" height=\"40\"/>{/BODY}",
+                    "type": "RadioButtonGroup",
+                    "value": 0,
+                    "varName": "markerShape"
+                },
+                {
+                    "text": "Сглаживать отрисовку (дороже по FPS)",
+                    "tooltip": "{HEADER}Сглаживать отрисовку (дороже по FPS){/HEADER}{BODY}Маркер двигается плавнее, но на слабых компьютерах это стоит нескольких кадров в секунду.{/BODY}",
+                    "type": "CheckBox",
+                    "value": false,
+                    "varName": "smoothDraw"
+                }
+            ],
+            "column2": [
+                {
+                    "options": [
+                        {
+                            "label": "Белая"
+                        },
+                        {
+                            "label": "Зелёная"
+                        },
+                        {
+                            "label": "Жёлтая"
+                        },
+                        {
+                            "label": "Красная"
+                        },
+                        {
+                            "label": "Как в клиенте"
+                        }
+                    ],
+                    "text": "Цветовая схема",
+                    "tooltip": "{HEADER}Цветовая схема{/HEADER}{BODY}Цвет маркера и его обводки.<br><br><img src=\"img://gui/maps/example/reticle_colors.png\" width=\"120\" height=\"32\"/>{/BODY}",
+                    "type": "RadioButtonGroup",
+                    "value": 0,
+                    "varName": "colorScheme"
+                }
+            ],
+            "enabled": true,
+            "modDisplayName": "Пример: оформление прицела",
+            "settingsVersion": 2
+        },
+        "ru.example.stats": {
+            "column1": [
+                {
+                    "options": [
+                        {
+                            "label": "Средний урон"
+                        },
+                        {
+                            "label": "Процент побед"
+                        },
+                        {
+                            "label": "Число боёв"
+                        },
+                        {
+                            "label": "Средний опыт"
+                        },
+                        {
+                            "label": "Свой показатель"
+                        },
+                        {
+                            "label": "Как в профиле"
+                        }
+                    ],
+                    "text": "Какой показатель выводить",
+                    "tooltip": "{HEADER}Какой показатель выводить{/HEADER}{BODY}Показатель вашей статистики, который виден в ангаре рядом с названием танка.{/BODY}",
+                    "type": "Dropdown",
+                    "value": 4,
+                    "varName": "metric",
+                    "width": 200
+                }
+            ],
+            "column2": [
+                {
+                    "text": "Округлять до целых",
+                    "tooltip": "{HEADER}Округлять до целых{/HEADER}{BODY}Дробная часть показателя отбрасывается.{/BODY}",
+                    "type": "CheckBox",
+                    "value": false,
+                    "varName": "roundValues"
+                },
+                {
+                    "text": "Сообщать о смене показателя",
+                    "tooltip": "{HEADER}Сообщать о смене показателя{/HEADER}{BODY}После смены показателя в ангаре появится короткая справка о нём.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "notifyChange"
+                }
+            ],
+            "modDisplayName": "Пример: статистика в ангаре",
+            "settingsVersion": 4
+        },
+        "ru.example.tank_card": {
+            "column1": [
+                {
+                    "options": [
+                        {
+                            "filename": "mods/configs/example/card_compact.xml",
+                            "label": "Компактная"
+                        },
+                        {
+                            "filename": "mods/configs/example/card_full.xml",
+                            "label": "Подробная"
+                        },
+                        {
+                            "filename": "mods/configs/example/card_color.xml",
+                            "label": "Цветная"
+                        }
+                    ],
+                    "text": "Вид карточки",
+                    "type": "Dropdown",
+                    "value": 0,
+                    "varName": "layoutId",
+                    "width": 200
+                },
+                {
+                    "text": "В обычном режиме прицела",
+                    "tooltip": "{HEADER}В обычном режиме прицела{/HEADER}{BODY}Показывать карточку в обычном режиме прицела.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "inArcade"
+                },
+                {
+                    "text": "В снайперском режиме",
+                    "tooltip": "{HEADER}В снайперском режиме{/HEADER}{BODY}Показывать карточку в снайперском режиме.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "inSniper"
+                },
+                {
+                    "text": "В артиллерийском режиме",
+                    "tooltip": "{HEADER}В артиллерийском режиме{/HEADER}{BODY}Показывать карточку в артиллерийском режиме.{/BODY}",
+                    "type": "CheckBox",
+                    "value": true,
+                    "varName": "inStrategic"
+                },
+                {
+                    "text": "Показывать и для союзников",
+                    "tooltip": "{HEADER}Показывать и для союзников{/HEADER}{BODY}Карточка появляется и при наведении на союзную технику.{/BODY}",
+                    "type": "CheckBox",
+                    "value": false,
+                    "varName": "forAllies"
+                }
+            ],
+            "column2": [
+                {
+                    "format": "{{value}} сек.",
+                    "maximum": 10,
+                    "minimum": 0,
+                    "snapInterval": 1,
+                    "text": "Скрывать через",
+                    "tooltip": "{HEADER}Скрывать через{/HEADER}{BODY}Через сколько секунд карточка исчезнет сама.{/BODY}",
+                    "type": "Slider",
+                    "value": 5,
+                    "varName": "hideDelay",
+                    "width": 200
+                },
+                {
+                    "format": "{{value}} пикселей",
+                    "maximum": 400,
+                    "minimum": -400,
+                    "snapInterval": 1,
+                    "text": "Сдвиг по горизонтали",
+                    "type": "Slider",
+                    "value": 0,
+                    "varName": "shiftX",
+                    "width": 310
+                },
+                {
+                    "format": "{{value}} пикселей",
+                    "maximum": 400,
+                    "minimum": -400,
+                    "snapInterval": 1,
+                    "text": "Сдвиг по вертикали",
+                    "type": "Slider",
+                    "value": 0,
+                    "varName": "shiftY",
+                    "width": 310
+                }
+            ],
+            "enabled": true,
+            "modDisplayName": "Пример: карточка танка",
+            "settingsVersion": 0
+        },
+        "ru.example.ui-scale": {
+            "column1": [
+                {
+                    "format": "Масштаб: {{value}}",
+                    "maximum": 3.0,
+                    "minimum": 0.8,
+                    "snapInterval": 0.01,
+                    "text": "Масштаб интерфейса",
+                    "tooltip": "{HEADER}Масштаб интерфейса{/HEADER}{BODY}Множитель размера боевого интерфейса.<br>При дробных значениях картинка может слегка размываться.{/BODY}",
+                    "type": "Slider",
+                    "value": 1.0,
+                    "varName": "uiScale"
+                }
+            ],
+            "column2": [],
+            "enabled": false,
+            "modDisplayName": "Пример: масштаб интерфейса"
+        }
+    }
+}

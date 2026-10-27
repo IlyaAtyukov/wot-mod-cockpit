@@ -1,0 +1,24 @@
+<Project>
+
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- CS1591 = "нет XML-комментария у публичного члена". Контракты в Core документированы,
+         но у заглушек/ViewModel требовать доку смысла нет. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <NeutralLanguage>ru-RU</NeutralLanguage>
+    <Company>WoT Mod Cockpit</Company>
+    <Product>WoT Mod Cockpit</Product>
+    <Version>0.1.0</Version>
+    <!-- Автор и копирайт видны в свойствах exe/dll в проводнике. Лицензия — LICENSE (MIT);
+         заглушка установщика переопределяет Copyright на 0BSD (см. её csproj). -->
+    <Authors>Ilya Atyukov</Authors>
+    <Copyright>Copyright (c) 2026 Ilya Atyukov. MIT License.</Copyright>
+    <RepositoryUrl>https://github.com/IlyaAtyukov/wot-mod-cockpit</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+  </PropertyGroup>
+
+</Project>

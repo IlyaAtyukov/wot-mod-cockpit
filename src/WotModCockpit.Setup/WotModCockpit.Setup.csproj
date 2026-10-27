@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+      ЗАГЛУШКА УСТАНОВЩИКА. Сама по себе ничего не ставит: кокпит дописывает к этому exe
+      архив с модами (см. WotModCockpit.Core/Bundle), и получается Setup.exe сборки, в котором
+      человек отмечает, какие моды поставить.
+
+      Почему .NET Framework 4.7.2, а не .NET 8, как весь кокпит: сетап уходит людям, у которых
+      нет ни кокпита, ни рантайма .NET 8. Framework 4.7.2+ есть в каждой Windows 10/11 из
+      коробки, и exe запускается без установки чего бы то ни было. Отсюда же C# 7.3 и
+      отключённые настройки Directory.Build.props, рассчитанные на net8 (nullable, неявные
+      using, документация) — компилятор C# 7.3 их не понимает.
+
+      Готовый exe кладётся в выходной каталог кокпита как setup\WotModCockpit.Setup.exe
+      (см. WotModCockpit.App.csproj): кокпит берёт заглушку именно оттуда.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <LangVersion>7.3</LangVersion>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <RootNamespace>WotModCockpit.Setup</RootNamespace>
+    <AssemblyName>WotModCockpit.Setup</AssemblyName>
+    <!-- Манифест обязателен: без requestedExecutionLevel Windows по имени файла («...Setup.exe»)
+         решает, что это установщик, и требует прав администратора. Ставить моды в папку игры
+         можно и без них. -->
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\WotModCockpit.App\Resources\cockpit.ico</ApplicationIcon>
+    <!-- Сетап — один файл: рядом с ним не будет ни .config, ни .pdb. -->
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <DebugType>embedded</DebugType>
+    <!-- Заглушка дополнительно лицензирована по 0BSD (LICENSE-0BSD, перечень — в LICENSE.md
+         этой папки): Setup.exe раздают игрокам, и лицензионных приписок рядом с ним быть не
+         должно. Это и видно в свойствах файла вместо MIT из Directory.Build.props. -->
+    <Copyright>Copyright (c) 2026 Ilya Atyukov. 0BSD License.</Copyright>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+  </ItemGroup>
+
+</Project>
